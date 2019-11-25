@@ -13,6 +13,15 @@ const videoContainer = document.getElementById('video-container')
 
 const defaultChannel = 'techguyweb'
 
+// Form submit and change channel
+channelForm.addEventListener('submit', e => {
+  e.preventDefault()
+
+  const channel = channelInput.value
+
+  getChannel(channel)
+})
+
 // Load auth2 library
 function handleClientLoad () {
   gapi.load('client:auth2', initClient)
@@ -60,7 +69,39 @@ function handleSignoutClick () {
   gapi.auth2.getAuthInstance().signOut()
 }
 
+// Display channel data
+function showChannelData (data) {
+  const channelData = document.getElementById('channel-data')
+  channelData.innerHTML = data
+}
+
 // Get channel from api
-function getChannel(channel) {
-    console.log(channel)
+function getChannel (channel) {
+  gapi.client.youtube.channels.list({
+    part: 'snippet,contentDetails,statistics',
+    forUsername: channel
+  })
+    .then(responce => {
+      console.log(responce)
+      const channel = responce.result.items[0]
+
+      const output = `
+      <ul class='collection'>
+        <li class='collection-item'>Title: ${channel.snippet.title}</li>
+        <li class='collection-item'>ID: ${channel.snippet.title}</li>
+        <li class='collection-item'>Subscribers: ${numberWithCommas(channel.statistics.subscriberCount)}</li>
+        <li class='collection-item'>Views: ${numberWithCommas(channel.stastistics.viewCount)}</li>
+        <li class='collection-item'>Videos: ${numberWithCommas(channel.stastistics.videoCount)}</li>
+      </ul>
+      <p>${channel.snippet.description}</p>
+      <hr>
+      <a class='btn grey darken-2' target='_blank' href='https://youtube.com/${channel.snippet.customUrl}'>Visit Channel</a>
+      `
+      showChannelData(output)
+    })
+    .catch(err => alert('No Channel By That Name'))
+}
+
+function numberWithCommas (x) {
+  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 }
