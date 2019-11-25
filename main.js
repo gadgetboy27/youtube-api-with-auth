@@ -98,10 +98,49 @@ function getChannel (channel) {
       <a class='btn grey darken-2' target='_blank' href='https://youtube.com/${channel.snippet.customUrl}'>Visit Channel</a>
       `
       showChannelData(output)
+
+      const playlistId = channel.contentDetails.relatedPlaylists.uploads
+      requestVideoPlaylist(playlistId)
     })
     .catch(err => alert('No Channel By That Name'))
 }
 
 function numberWithCommas (x) {
   return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+}
+
+function requestVideoPlaylist (playlistId) {
+  const requestOptions = {
+    playlistId: playlistId,
+    part: 'snippet',
+    maxResults: 10
+  }
+
+  const request = gapi.client.youtube.playlistItems.list(requestOptions)
+
+  request.execute(responce => {
+    console.log(responce)
+    const playlistItems = responce.result.items
+    if (playlistItems) {
+      let output = '<br><h4 class="center-align">Latest Videos</h4>'
+
+      // Loop through videos and append output
+      playlistItems.forEach(item => {
+        const videoId = item.snippet.resourceId.videoId
+
+        output += `
+        <div class="col s3">
+
+        <iframe width="100%" height="auto" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+        </div>
+        `
+      })
+
+      // Output Video
+      videoContainer.innerHTML = output
+    } else {
+      videoContainer.innerHTML = 'No Uploaded Videos'
+    }
+  })
 }
